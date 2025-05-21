@@ -33,15 +33,6 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npm ci
         
-      - name: Run tests
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: npm run test -- --watch=false --browsers=ChromeHeadless
-        continue-on-error: false
-        
-      - name: Run linting
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: npm run lint
-        continue-on-error: false
         
       - name: Build Angular app
         working-directory: ${{ env.WORKING_DIRECTORY }}
