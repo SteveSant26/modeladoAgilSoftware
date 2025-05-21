@@ -28,10 +28,16 @@ jobs:
         working-directory: frontend
         run: npm run build -- --configuration=production
 
+      - name: Verifica contenido de dist
+        run: ls -R frontend/dist
+
+
       - name: Zip artifact for deployment
         run: |
-          cd frontend/dist/frontend
+          DIST_PATH=frontend/dist/frontend
+          cd $DIST_PATH
           zip -r ../../../../release.zip .
+
 
       - name: Verifica el zip generado
         run: ls -lh release.zip
