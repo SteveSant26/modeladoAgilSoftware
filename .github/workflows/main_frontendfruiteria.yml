@@ -31,9 +31,16 @@ jobs:
       - name: Verifica contenido de dist
         run: ls -R frontend/dist/frontend
 
-
+        
       - name: Zip artifact for deployment
-        run: zip -r release.zip frontend/dist/frontend
+        run: |
+          if [ -d "frontend/dist/frontend" ]; then
+            cd frontend/dist/frontend
+            zip -r ../../../../release.zip .
+          else
+            echo "Error: frontend/dist/frontend does not exist."
+            exit 1
+          fi
 
 
 
