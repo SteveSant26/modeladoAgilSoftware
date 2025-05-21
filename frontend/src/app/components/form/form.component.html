@@ -1,0 +1,36 @@
+<div class="flex flex-col items-center justify-centerrounded-2xl p-6">
+    <div class="w-full rounded-t-3xl bg-gray-500 text-center p-4">
+        <h2 class="font-bold text-2xl text-white">{{formTitle()}}</h2>
+    </div>
+
+    <form class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" [formGroup]="formGroup()">
+        @for (field of formFields(); track $index) {
+        <mat-form-field appearance="fill" class="w-full">
+            <mat-label>{{ field.label }}</mat-label>
+
+            @if (field.type === 'select') {
+            <mat-select [formControlName]="field.name">
+                @for (option of field.options; track $index) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+            </mat-select>
+            }
+            @else {
+            <input matInput [type]="field.type" [placeholder]="field.placeholder" [formControlName]="field.name"
+                [name]="field.name" />
+            }
+
+            <mat-error>{{ getErrorMessage(field.name) }}</mat-error>
+        </mat-form-field>
+        }
+
+
+        <div class="col-span-1 md:col-span-2 flex justify-center mt-4">
+            <button mat-flat-button class="p-3 rounded-2xl border border-gray-400 hover:scale-110 cursor-pointer"
+                [disabled]="formGroup().invalid" (click)="sendForm.emit(formGroup().value)">
+                Save
+            </button>
+
+        </div>
+    </form>
+</div>

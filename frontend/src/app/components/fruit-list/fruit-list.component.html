@@ -1,0 +1,26 @@
+<mat-list>
+    @for (fruit of fruits(); track fruit.id) {
+    <mat-list-item>
+        
+        <div matListItemMeta>
+            <button class="hover:scale-110 cursor-pointer" (click)="fruitsService.selectFruit(fruit)">
+
+                <mat-icon>edit</mat-icon>
+            </button>
+            <button class="hover:scale-110 cursor-pointer" (click)="deleteFruit(fruit.id)">
+
+                <mat-icon>delete</mat-icon>
+            </button>
+        </div>
+        <h3 matListItemTitle>{{fruit.name}}</h3>
+        <p matListItemLine>
+            <span>{{fruit.category.name}}</span>
+            <span class="demo-2"> -- {{fruit.price}}</span>
+        </p>
+    </mat-list-item>
+    }
+    @empty { 
+        <h1>NO FRUITS FOUND</h1>
+    }
+
+</mat-list>
