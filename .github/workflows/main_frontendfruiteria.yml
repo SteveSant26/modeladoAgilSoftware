@@ -21,19 +21,20 @@ jobs:
           node-version: '18.x'
 
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
+        working-directory: frontend
+        run: npm install
 
       - name: Build Angular app
-        run: |
-          cd frontend
-          npm run build -- --configuration=production
+        working-directory: frontend
+        run: npm run build -- --configuration=production
 
       - name: Zip artifact for deployment
         run: |
           cd frontend/dist/frontend
           zip -r ../../../../release.zip .
+
+      - name: Verifica el zip generado
+        run: ls -lh release.zip
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
