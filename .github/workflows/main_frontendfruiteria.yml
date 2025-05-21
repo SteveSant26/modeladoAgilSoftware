@@ -9,28 +9,25 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: 18.x
 
       - name: Install dependencies
-        working-directory: frontend
+        working-directory: ./frontend
         run: npm install
 
       - name: Build Angular app
-        working-directory: frontend
-        run: npm run build -- --configuration=production
+        working-directory: ./frontend
+        run: npm run build
 
-      - name: Verifica contenido de dist
+      - name: Verifica contenido
         run: ls -R frontend/dist/frontend
-
         
       - name: Zip artifact for deployment
         run: |
