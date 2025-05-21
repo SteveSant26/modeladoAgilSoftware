@@ -24,24 +24,23 @@ jobs:
 
       - name: Build Angular app
         working-directory: ./frontend
-        run: npm run build
+        run: npm run build -- --configuration=production
 
-      - name: Verifica contenido
-        run: ls -R frontend/dist/frontend
-        
+      - name: Verify build output
+        run: ls -R frontend/dist/
+
       - name: Zip artifact for deployment
         run: |
-          if [ -d "frontend/dist/frontend" ]; then
-            cd frontend/dist/frontend
+          BUILD_PATH="frontend/dist/frontend"
+          if [ -d "$BUILD_PATH" ]; then
+            cd "$BUILD_PATH"
             zip -r ../../../../release.zip .
           else
-            echo "Error: frontend/dist/frontend does not exist."
+            echo "Error: $BUILD_PATH does not exist."
             exit 1
           fi
 
-
-
-      - name: Verifica el zip generado
+      - name: Check release.zip
         run: ls -lh release.zip
 
       - name: Upload artifact for deployment job
@@ -67,7 +66,7 @@ jobs:
           name: angular-app
 
       - name: Unzip artifact
-        run: unzip release.zip -d .
+        run: unzip release.zip -d site
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -82,4 +81,4 @@ jobs:
         with:
           app-name: 'frontendFruiteria'
           slot-name: 'Production'
-          package: .
+          package: ./site
