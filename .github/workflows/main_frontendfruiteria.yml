@@ -31,10 +31,11 @@ jobs:
       - name: Verifica contenido de dist
         run: ls -R frontend/dist/frontend
 
+
       - name: Zip artifact for deployment
-        run: |
-          cd frontend/dist/frontend
-          zip -r ../../../../release.zip .
+        run: zip -r release.zip frontend/dist/frontend
+
+
 
       - name: Verifica el zip generado
         run: ls -lh release.zip
