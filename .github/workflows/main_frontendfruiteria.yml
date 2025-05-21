@@ -32,7 +32,7 @@ jobs:
 
       - name: Zip artifact for deployment
         run: |
-          cd frontend/dist/frontendFruiteria
+          cd frontend/dist/frontend
           zip -r ../../../../release.zip .
 
       - name: Upload artifact for deployment job
