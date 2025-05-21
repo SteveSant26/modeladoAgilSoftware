@@ -4,74 +4,114 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+env:
+  NODE_VERSION: '18.x'
+  WORKING_DIRECTORY: './frontend'
+  BUILD_PATH: 'frontend/dist/frontend'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+        
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
-
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '${{ env.WORKING_DIRECTORY }}/package-lock.json'
+          
       - name: Install dependencies
-        working-directory: ./frontend
-        run: npm install
-
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm ci
+        
+      - name: Run tests
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+        continue-on-error: false
+        
+      - name: Run linting
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm run lint
+        continue-on-error: false
+        
       - name: Build Angular app
-        working-directory: ./frontend
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npm run build -- --configuration=production
-
+        
       - name: Verify build output
-        run: ls -R frontend/dist/
-
-      - name: Zip artifact for deployment
         run: |
-          BUILD_PATH="frontend/dist/frontend"
-          if [ -d "$BUILD_PATH" ]; then
-            cd "$BUILD_PATH"
-            zip -r ../../../../release.zip .
+          echo "Checking build output structure:"
+          ls -la ${{ env.BUILD_PATH }}
+          echo "Build directory contents:"
+          find ${{ env.BUILD_PATH }} -type f -name "*.js" -o -name "*.css" -o -name "*.html" | head -10
+        
+      - name: Create deployment package
+        run: |
+          if [ -d "${{ env.BUILD_PATH }}" ]; then
+            echo "Creating deployment package from ${{ env.BUILD_PATH }}"
+            cd "${{ env.BUILD_PATH }}"
+            zip -r ../../../../release.zip . -x "*.map"
+            cd ../../../../
+            echo "Package created successfully"
+            ls -lh release.zip
           else
-            echo "Error: $BUILD_PATH does not exist."
+            echo "Error: Build path ${{ env.BUILD_PATH }} does not exist."
+            echo "Available directories:"
+            find frontend/dist -type d 2>/dev/null || echo "No dist directory found"
             exit 1
           fi
-
+          
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: angular-app
+          name: angular-app-${{ github.sha }}
           path: release.zip
+          retention-days: 5
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    # Solo deployar en push a main, no en PRs
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
     permissions:
       id-token: write
       contents: read
-
+    
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: angular-app
-
-      - name: Unzip artifact
-        run: unzip release.zip -d site
-
+          name: angular-app-${{ github.sha }}
+          
+      - name: Prepare deployment files
+        run: |
+          echo "Extracting deployment package..."
+          mkdir -p site
+          unzip release.zip -d site/
+          echo "Deployment files prepared:"
+          ls -la site/
+          
       - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_235258F0FB7F4F7798AB9AA895A2BD15 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2D8BCB0128EF4C29B7A16CAE22FD874E }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CFBEC0A9A60B4A288746F9DB741EE57B }}
-
+          
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -79,3 +119,23 @@ jobs:
           app-name: 'frontendFruiteria'
           slot-name: 'Production'
           package: ./site
+          
+      - name: Verify deployment
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Application URL: ${{ steps.deploy-to-webapp.outputs.webapp-url }}"
+
+  # Job opcional para notificaciones de deploy
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Notify deployment status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi
