@@ -12,7 +12,7 @@ on:
 env:
   NODE_VERSION: '18.x'
   WORKING_DIRECTORY: './frontend'
-  BUILD_PATH: 'frontend/dist/frontend'
+  BUILD_PATH: 'frontend/dist/frontend/browser'
 
 jobs:
   build:
