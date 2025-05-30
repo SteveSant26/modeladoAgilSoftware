@@ -1,14 +1,23 @@
 # Paso 1: Construir la app Angular
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY . .
-RUN npm install -g @angular/cli
-RUN npm install
-RUN ng build --configuration=production
+FROM node:18 AS builder
 
-# Paso 2: Servir con http-server
-FROM node:18-alpine
 WORKDIR /app
-RUN npm install -g http-server
-COPY --from=builder /app/dist/* /app
-CMD ["http-server", "frontend", "-p", "8080"]
+COPY frontend/ ./
+
+# Instalar dependencias y compilar
+RUN npm install
+RUN npm run build -- --configuration production
+
+# Paso 2: Crear contenedor final con NGINX
+FROM nginx:alpine
+
+# Copiar archivo de configuración personalizado (opcional)
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copiar archivos Angular compilados al servidor NGINX
+COPY --from=builder /app/dist/frontend/browser /usr/share/nginx/html
+
+# Exponer el puerto 80 (necesario para Cloud Run)
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
