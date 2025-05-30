@@ -21,7 +21,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=builder /app/dist/frontend/browser /usr/share/nginx/html
 
 # Expone el puerto que usará Cloud Run
-EXPOSE 80
+EXPOSE 8080
 
 # Comando por defecto para iniciar NGINX
 CMD ["nginx", "-g", "daemon off;"]
