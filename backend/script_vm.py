@@ -11,9 +11,9 @@ SUBSCRIPTION_ID = os.getenv("AZURE_SUBSCRIPTION_ID")
 SSH_KEY = os.getenv("AZURE_SSH_KEY")
 
 # Configuración general
-RESOURCE_GROUP_NAME = "VM-Azure-group"
+RESOURCE_GROUP_NAME = "VM-Azure-groupp"
 LOCATION = "eastus"
-VM_NAME = "Vm-Azure"
+VM_NAME = "Vm-Azuree"
 USERNAME = "StevenSant"
 
 # Autenticación
@@ -119,7 +119,7 @@ def create_vm(nic, os_profile):
                 "version": "latest",
             },
             "os_disk": {
-                "name": f"{VM_NAME}-osdisk",
+                "name": f"{VM_NAME}-osdiskk",
                 "caching": "ReadWrite",
                 "create_option": "FromImage",
                 "managed_disk": {"storage_account_type": "StandardSSD_LRS"},
